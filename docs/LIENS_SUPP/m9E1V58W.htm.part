@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>
+Multiple View Geometry in Computer Vision<BR>Second Edition
+</title>
+<link rel="stylesheet" type="text/css" href="hzbook.css" media="all">
+<script type="text/javascript" src="http://www.robots.ox.ac.uk/~vgg/ga_snippet.js"></script>
+</head>
+<body>
+
+<div id=bookbar2>
+<table><tr>
+<td class="tdleft"><img src="hzcover2.jpg" height=150
+alt="First Edition Cover Image">
+</td><td>
+<h1>Multiple View Geometry in Computer Vision<BR>Second Edition</h1>
+<h2>Richard Hartley and Andrew Zisserman,<br>
+Cambridge University Press, March 2004.</h2></td></tr></table>
+</div>
+
+<div id=main2 class=main>
+
+<table><tr><td>
+<h3>Sample chapters</h3>
+<ul>
+<li>Contents  
+   &nbsp;<a href="hzbook2/HZcontents.pdf">pdf</a></li>
+<li>Introduction
+   &nbsp;<a href="hzbook2/HZintroduction.pdf">pdf</a></li>
+<li> Epipolar Geometry and the Fundamental Matrix
+   &nbsp;<a href="hzbook2/HZepipolar.pdf">pdf</a></li>
+<li> The Trifocal Tensor
+   &nbsp;<a href="hzbook2/HZtrifocal.pdf">pdf</a></li>
+<li> Bibliography
+   &nbsp;<a href="hzbook2/HZbibliography.pdf">pdf</a></li>
+</ul>
+
+<h3>Figures</h3>
+<ul>
+<li> <a href="hzbook2/HZfigures.html">Download figures</a> in
+pdf, png, bmp or postscript format.
+</ul>
+
+<h3><a href="code">Matlab code</a></h3>
+
+<h3><a href="hzbook2/HZerrors3.pdf"> Corrections and Errata (pdf)</a></h3>
+
+</td>
+<td>
+<h3>Clarifications</h3>
+<ul>
+<li>Image rectification (chapter 11)  
+   &nbsp;<a href="hzbook2/clarification_rectification.pdf">pdf</a></li>
+<li> Number of linearly independent trilinear relations (chapter 17)
+   &nbsp;
+<a href="hzbook2/clarification_trilinear_relations.pdf">pdf</a>
+<a href="hzbook2/TrifocalRelations2.nb">mathematica</a>
+</li>
+</ul>
+
+<h3>Also Available</h3>
+See the <a href="hzbook1.html">First Edition</a>'s page for sample chapters, downloadable figures, corrections and
+errata pertaining to the first edition.<br><br> 
+
+<h3>Buy Online</h3>
+Amazon: <a href="http://www.amazon.com/exec/obidos/tg/detail/-/0521540518/qid=1126195435/sr=8-1/ref=pd_bbs_1/103-8055115-0657421?v=glance&s=books&n=507846">Second edition</a>.<br>
+CUP: <a href="http://www.cambridge.org/uk/catalogue/catalogue.asp?isbn=0521540518">Second edition</a>.<br><br> 
+
+<h3>Related Sites</h3>
+<a href="http://nonsense.danielwedge.com/2008/10/19/the-fundamental-matrix-song/
+">The fundamental matrix song</a>.
+</td></tr>
+
+
+<tr><td colspan=2>
+<h3>Bibtex source</h3>
+<code>
+@Book{Hartley2004, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;author = "Hartley, R.~I. and Zisserman, A.",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title = "Multiple View Geometry in Computer Vision",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;edition = "Second",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;year = "2004",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;publisher = "Cambridge University Press, ISBN: 0521540518"<br>
+}
+</code>
+</td></tr>
+
+</table>
+</div>
+</body>
+</html>
+
