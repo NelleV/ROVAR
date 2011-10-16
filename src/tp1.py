@@ -1,12 +1,14 @@
 import os
 
 import numpy as np
-import scipy as sp
+from scipy import ndimage
+from scipy import linalg
 import itertools
 
 from pylab import imread, imsave, imshow, mean
 
 from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.externals.joblib import Memory
 
 from PIL import Image
 
@@ -19,11 +21,11 @@ import utils
 import ransac
 import ransac_model
 
-THRESHOLD = 0.65
+THRESHOLD = 0.50
 
 ITERATIONS = 50
 
-def detect_harris_detector(image):
+def detect_harris_detector(image, threshold=0.1, min_distance=5):
     """
     Detects harris points
 
@@ -45,8 +47,8 @@ def detect_harris_detector(image):
     im1 = image
     harrisim1 = harris.compute_harris_response(im1)
     points1 = harris.get_harris_points(harrisim1,
-                                       min_distance=5,
-                                       threshold=0.1)
+                                       min_distance=min_distance,
+                                       threshold=threshold)
 
     # Then the second half of the image
 #    im2 = image[:, 152:]
@@ -71,15 +73,15 @@ def extract_coord(sift_array):
     return coords
 
 
-def euclidean_distances(d1, d2):
-    distances = np.zeros((d1.shape[0], d2.shape[0]), dtype=np.int16)
-    for i, x in enumerate(d1):
-        for j, y in enumerate(d2):
-            d = np.zeros(y.shape, dtype=np.int16)
-            d = (x - y)**2
-            distances[i, j] = d.sum(axis=0)
-    return distances
-
+#def euclidean_distances(d1, d2):
+#    distances = np.zeros((d1.shape[0], d2.shape[0]), dtype=np.int16)
+#    for i, x in enumerate(d1):
+#        for j, y in enumerate(d2):
+#            d = np.zeros(y.shape, dtype=np.int16)
+#            d = (x - y)**2
+#            distances[i, j] = d.sum(axis=0)
+#    return distances
+#
 
 def match_descriptors(d1, d2, f1, f2):
     """
@@ -90,6 +92,10 @@ def match_descriptors(d1, d2, f1, f2):
         A n*4 array of coordinates
     """
     distances = euclidean_distances(d1, d2)
+    mean_norm = float((d1**2).sum() +
+                      (d2**2).sum()) / (d2.shape[0] * d2.shape[1] +
+                                        d1.shape[0] * d2.shape[1])
+    distances /= mean_norm
     # the nearest neighbour is the one for which the euclidean distance is the
     # smallest
     N1 = np.array([[x, y] for x, y in enumerate(distances.argmin(axis=1))])
@@ -102,8 +108,12 @@ def match_descriptors(d1, d2, f1, f2):
     eps = np.zeros(distances_N1.shape, dtype=np.float64)
     eps += distances_N1
     eps /= distances_N2
-
     eps = eps < THRESHOLD
+
+    eps1 = (distances_N1 < 0.1)
+    import pdb; pdb.set_trace()
+
+    eps = np.logical_or(eps1, eps)
 
     matches = []
     matches_d = []
@@ -181,8 +191,9 @@ def calculate_homography(points):
         a.append(a_x)
         a.append(a_y)
     A = np.array(a)
-    H = np.linalg.svd(A)[-1][:, -1]
+    H = linalg.svd(A)[-1].T[:, -1]
     H.shape = (3, 3)
+    H /= H[2, 2]
     return H
 
 
@@ -195,7 +206,7 @@ def homography(fp, tp):
         A[2 * i + 1] = [0, 0, 0, -fp[0][i], -fp[1][i], -1, tp[1][i] * fp[0][i],
                     tp[1][i] * fp[1][i], tp[1][i]]
 
-    U, S, V = np.linalg.svd(A)
+    U, S, V = linalg.svd(A)
 
     H = V[8].reshape((3,3))
     return H
@@ -264,7 +275,6 @@ def show_matched_desc(image1, image2, matched_desc):
     return image
 
 
-
 def calculate_inertia(element):
     """Calculates inertia"""
     inertia = []
@@ -282,51 +292,64 @@ def calculate_inertia(element):
 if __name__ == "__main__":
     # Sift descriptor doesn't work with color images. Let's stick with grey
     # images
-    image1 = mean(imread('keble_a.jpg'), 2)[::-1]
-    image2 = mean(imread('keble_a.jpg'), 2)[::-1]
-    image1 = image1[:400, :400]
-    image2 = image2[:400, 50:450]
+    mem = Memory(cachedir='.')
+    if 0:
+        image1 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
+        image2 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
+        image1 = image1[:300, :300]
+        # image2 = image1 + 10
+        image2 = image2[20:320, 20:320]
+    else:
+        image = np.zeros((300, 400))
+        image += 30
+        np.random.seed(0)
+        image += np.random.random(size=image.shape)
+        image[125:175, 125:175] = 125
+        image[100:150, 150:200] = 200
+        #image = ndimage.gaussian_filter(image, 3)
+        image1 = image.copy()[50:250, 70:270]
+        image2 = image.copy()[50:250, 50:250]
+
+
     # image2 = mean(imread('keble_b.jpg'), 2)[::-1]
     #FIXME we assume that image1.shape = image2.shape
 
     # the image is rotated
-    coords1 = detect_harris_detector(image1)
+    coords1 = mem.cache(detect_harris_detector)(image1, threshold=.995)
     key_points1 = utils.create_frames_from_harris_points(coords1)
 
     # the image is rotated
-    coords2 = detect_harris_detector(image2)
+    coords2 = mem.cache(detect_harris_detector)(image2, threshold=.995)
     key_points2 = utils.create_frames_from_harris_points(coords2)
 
+    # Rearrange the keypoints to be close
+    if 0:
+        import hungarian
+        dist = euclidean_distances(key_points1.T, key_points2.T)
+        ordering = mem.cache(hungarian.hungarian)(dist)[:, 1]
+        key_points2 = key_points2[:, ordering]
 
     # Get sift descriptors
-    f1, d1 = vl_sift(np.array(image1, 'f', order='F'),
+    f1, d1 = mem.cache(vl_sift)(np.array(image1, 'f', order='F'),
                      frames=key_points1,
                      orientations=False)
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     f1, d1 = f1.transpose(), d1.transpose()
 
-    nd1 = np.zeros(d1.shape)
-    nd1 += d1
-    nd1 /= d1.max()
-
     # Get sift descriptors
-    f2, d2 = vl_sift(np.array(image2, 'f', order='F'),
+    f2, d2 = mem.cache(vl_sift)(np.array(image2, 'f', order='F'),
                      frames=key_points2,
                      orientations=False)
     f2, d2 = f2.transpose(), d2.transpose()
-    nd2 = np.zeros(d2.shape)
-    nd2 += d2
-    nd2 /= d2.max()
 
-
-    matched_desc, matches_d = match_descriptors(nd1, nd2, f1, f2)
+    matched_desc, matches_d = match_descriptors(d1, d2, f1, f2)
     matched_desc = np.array(matched_desc)
     matches_d = np.array(matches_d)
 
     image1 =  show_sift_desc(image1, f1)
     image2 =  show_sift_desc(image2, f2)
     image  = show_matched_desc(image1, image2, matched_desc)
-    # imshow(image)
+    imshow(image)
 
 
     # Get the sift descriptors of the image using the pgm converted version of
