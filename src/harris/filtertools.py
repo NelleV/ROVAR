@@ -28,11 +28,11 @@ def gauss_derivatives(im, n, ny=None):
         derivative filters of size n. The optional argument 
         ny allows for a different size in the y direction."""
 
-    gx,gy = gauss_derivative_kernels(n, sizey=ny)
+    gx, gy = gauss_derivative_kernels(n, sizey=ny)
 
-    imx = signal.convolve(im,gx, mode='same')
-    imy = signal.convolve(im,gy, mode='same')
+    imx = signal.convolve(im, gx, mode='same')
+    imy = signal.convolve(im, gy, mode='same')
 
-    return imx,imy
+    return imx, imy
 
 
