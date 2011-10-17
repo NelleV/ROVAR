@@ -23,7 +23,7 @@ import utils
 import ransac
 import ransac_model
 
-THRESHOLD = 0.50
+THRESHOLD = 0.6
 
 ITERATIONS = 50
 
@@ -115,7 +115,7 @@ def match_descriptors(d1, d2, f1, f2):
     eps1 = (distances_N1 < 0.1)
     # import pdb; pdb.set_trace()
 
-    eps = np.logical_or(eps1, eps)
+    eps = np.logical_and(eps1, eps)
 
     matches = []
     matches_d = []
@@ -199,57 +199,6 @@ def calculate_homography(points):
     return H
 
 
-def homography(fp, tp):
-    nbr_correspondences = fp.shape[1]
-    A = np.zeros((2*nbr_correspondences, 9))
-    for i in range(nbr_correspondences):
-        A[2 * i] = [-fp[0][i], -fp[1][i], -1, 0, 0, 0, tp[0][i] * fp[0][i],
-                  tp[0][i] * fp[1][i], tp[0][i]]
-        A[2 * i + 1] = [0, 0, 0, -fp[0][i], -fp[1][i], -1, tp[1][i] * fp[0][i],
-                    tp[1][i] * fp[1][i], tp[1][i]]
-
-    U, S, V = linalg.svd(A)
-
-    H = V[8].reshape((3,3))
-    return H
-
-
-def cal_homography(fp, tp):
-    m = np.mean(fp[:2], axis=1)
-    maxstd = np.max(np.std(fp[:2], axis=1))
-    C1 = np.diag([1/maxstd, 1/maxstd, 1]) 
-    C1[0][2] = -m[0]/maxstd
-    C1[1][2] = -m[1]/maxstd
-    fp = np.dot(C1,fp)
-
-    #--to points--
-    m = np.mean(tp[:2], axis=1)
-    #C2 = C1.copy() #must use same scaling for both point sets
-    maxstd = np.max(np.std(tp[:2], axis=1))
-    C2 = np.diag([1/maxstd, 1/maxstd, 1])
-    C2[0][2] = -m[0]/maxstd
-    C2[1][2] = -m[1]/maxstd
-    tp = np.dot(C2,tp)
-
-    #create matrix for linear method, 2 rows for each correspondence pair
-    nbr_correspondences = fp.shape[1]
-    A = np.zeros((2*nbr_correspondences, 9))
-    for i in range(nbr_correspondences):
-        A[2 * i] = [-fp[0][i], -fp[1][i], -1, 0, 0, 0, tp[0][i] * fp[0][i],
-                  tp[0][i] * fp[1][i], tp[0][i]]
-        A[2 * i + 1] = [0, 0, 0, -fp[0][i], -fp[1][i], -1, tp[1][i] * fp[0][i],
-                    tp[1][i] * fp[1][i], tp[1][i]]
-
-    U, S, V = np.linalg.svd(A)
-
-    H = V[8].reshape((3,3))
-    #decondition
-    H = np.dot(np.linalg.inv(C2), np.dot(H,C1))
-
-    #normalize and return
-    return H / H[2][2]
-
-
 def RANSAC(desc):
     """
     Estimates the homography between the two images
@@ -258,7 +207,7 @@ def RANSAC(desc):
     redesc = np.ones((desc.shape[0], 6))
     redesc[:, :2] = desc[:, :2]
     redesc[:, 3:5] = desc[:, 2:]
-    result = ransac.ransac(redesc, ransac_model.ransac_model(), 4, 150, 50, 3)
+
     return result
 
 
@@ -272,6 +221,8 @@ def show_matched_desc(image1, image2, matched_desc):
     for el in placed_desc:
         try:
             image[bresenham(el[0], el[1], el[2], el[3])] = 0
+            image[bresenham(el[0]+1, el[1]+1, el[2]+1, el[3]+1)] = 0
+
         except:
             pass
     return image
@@ -293,51 +244,168 @@ def calculate_inertia(element):
 
 def nelle_desc(image, frames):
     size_x = 8
-    size_4
+    descs = []
     for frame in frames:
-        desc = image[frame[0] - 4:x + 4, frame[1] - 4:frame[1] + 4]
+        desc = image[frame[0] - 5:frame[0] + 5, frame[1] - 5:frame[1] + 5]
+        edesc = []
+        for i in desc:
+            for j in i:
+                edesc.append(j)
+        descs.append(np.array(edesc))
+    return frames, np.array(descs)
 
-def stitch(image1, image2, points):
+
+def stitchLR(image1, image2, points):
     """
     Stitch image1 to image2, with points points
     """
     # image 2 is base image. ie, we need to translate image1
-    image1b = np.zeros((image1.shape[0], image1.shape[1]+500))
+    image1b = np.zeros((image1.shape[0], image1.shape[1] + 500))
     image1b[:, 500:] = image1
     image1 = image1b
     image2b = np.zeros((image2.shape[0], image2.shape[1] + 500))
     image2b[:, 500:] = image2
     image2 = image2b
 
-
-    H1 = calculate_homography(
-                np.array([[51, 23, 340, 38],
-                          [62, 337, 359, 340],
-                          [395, 286, 691, 286],
-                          [367, 128, 655, 116]]))
-    points = np.array([[340, 38, 51, 23],
-                       [359, 340, 62, 337],
-                       [691, 286, 395, 286],
-                       [655, 116, 367, 128]])
     points[:, 0] += 500
-    points[:,2] += 500
-    # We translate the points
+    points[:, 2] += 500
 
     H2 = calculate_homography(points)
 
+    Hr = H2.copy()
+    # Hr[0, 2] = 0
+    # Hr[1, 2] = 0
     image1H = transform.homography(image1, H2)
-    em1 = em.copy()
-    em1[:, 500:] = image2[:, 500:]
-    return em1
+#    image2Hr = np.zeros((image2.shape[0], 1500))
+#    image2Hr[:image2.shape[0], :image2.shape[1]] = image2
+#    image2Hr = transform.homography(image2Hr, Ht)
+#    em = image2Hr.copy()
+#    em[:image1.shape[0],:image1.shape[1]] = image1H
+    em = image1H + image2
+    em[:, 500:] = image2[:, 500:]
+    return em
+
+def stitchRL(image2, image3, points23):
+    """
+    Stitch image1 to image2, with points points
+    """
+    s = image2.shape[1]
+    image2b = np.zeros((image2.shape[0], image2.shape[1] + 500))
+    image2b[:, :image2.shape[1]] = image2
+    image2 = image2b
+    image3b = np.zeros((image3.shape[0], image3.shape[1] + 500))
+    image3b[:, :image3.shape[1]] = image3
+    image3 = image3b
+
+    #points23[:, 0] += 500
+    #points23[:, 2] += 500
+
+    H2 = calculate_homography(points23)
+
+    Hr = H2.copy()
+    # Hr[0, 2] = 0
+    # Hr[1, 2] = 0
+    image3H = transform.homography(image3, H2)
+#    image2Hr = np.zeros((image2.shape[0], 1500))
+#    image2Hr[:image2.shape[0], :image2.shape[1]] = image2
+#    image2Hr = transform.homography(image2Hr, Ht)
+#    em = image2Hr.copy()
+#    em[:image1.shape[0],:image1.shape[1]] = image1H
+    em = image2 + image3H
+    em[:,:s] = image2[:, :s]
+    return em
 
 
-if __name__ == "__main__":
-    # Sift descriptor doesn't work with color images. Let's stick with grey
-    # images
+def oxford():
+    mem = Memory(cachedir='.')
+    image1 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
+    image2 = mean(imread('keble_b.jpg'), 2)[::-1].astype(np.float)
+    image3 = mean(imread('keble_c.jpg'), 2)[::-1].astype(np.float)
+
+    image1 = image1
+    # image2 = image1 + 10
+    image2 = image2
+
+    # image2 = mean(imread('keble_b.jpg'), 2)[::-1]
+    #FIXME we assume that image1.shape = image2.shape
+
+    # the image is rotated
+    coords1 = mem.cache(detect_harris_detector)(image1, threshold=.999)
+    key_points1 = utils.create_frames_from_harris_points(coords1)
+
+    # the image is rotated
+    coords2 = mem.cache(detect_harris_detector)(image2, threshold=.999)
+    key_points2 = utils.create_frames_from_harris_points(coords2)
+
+    coords3 = mem.cache(detect_harris_detector)(image3, threshold=.999)
+    key_points3 = utils.create_frames_from_harris_points(coords3)
+
+
+    # Rearrange the keypoints to be close
+    if 0:
+        import hungarian
+        dist = euclidean_distances(key_points1.T, key_points2.T)
+        ordering = mem.cache(hungarian.hungarian)(dist)[:, 1]
+        key_points2 = key_points2[:, ordering]
+
+    # Get sift descriptors
+    f1, d1 = mem.cache(vl_sift)(np.array(image1, 'f', order='F'),
+                     frames=key_points1,
+                     orientations=False)
+    f1, d1 = f1.transpose(), d1.transpose()
+
+    # Get sift descriptors
+    f2, d2 = mem.cache(vl_sift)(np.array(image2, 'f', order='F'),
+                     frames=key_points2,
+                     orientations=False)
+    f2, d2 = f2.transpose(), d2.transpose()
+
+    f3, d3 = mem.cache(vl_sift)(np.array(image3, 'f', order='F'),
+                     frames=key_points3,
+                     orientations=False)
+    f3, d3 = f3.transpose(), d3.transpose()
+
+
+    matched_desc, matches_d = match_descriptors(d1, d2, f1, f2)
+    matched_desc = np.array(matched_desc)
+    matches_d = np.array(matches_d)
+
+    image1 =  show_sift_desc(image1, f1)
+    image2 =  show_sift_desc(image2, f2)
+    image3 =  show_sift_desc(image3, f3)
+
+    points12 = np.array([[340, 38, 51, 23],
+                       [359, 340, 62, 337],
+                       [691, 286, 395, 286],
+                       [655, 116, 367, 128]])
+    em12 = stitchLR(image1, image2, points12)
+
+    points32 = np.array([[621, 18, 323, 35],
+                         [323, 44, 11, 22],
+                         [435, 398, 125, 400],
+                         [349, 360, 34, 363],
+                         [653, 336, 344, 340]])
+
+    points23 = points32.copy()
+    points23[:, :2] = points32[:, 2:]
+    points23[:, 2:] = points32[:, :2]
+    em23 = stitchRL(image2, image3, points23)
+    em = np.zeros((image2.shape[0], image2.shape[1] + 1000))
+    em[:, :image2.shape[1] + 500] = em12
+    em[:, 500:] = em23
+
+    imsave( "oxford.eps", em)
+    return em
+
+def breteuil():
+#if __name__ == "__main__":
+
     mem = Memory(cachedir='.')
     if 1:
-        image1 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
-        image2 = mean(imread('keble_b.jpg'), 2)[::-1].astype(np.float)
+        image1 = mean(imread('breteuil_1.jpg'), 2)[::-1].astype(np.float)
+        image2 = mean(imread('breteuil_2.jpg'), 2)[::-1].astype(np.float)
+        image3 = mean(imread('breteuil_3.jpg'), 2)[::-1].astype(np.float)
+
         image1 = image1
         # image2 = image1 + 10
         image2 = image2
@@ -364,6 +432,10 @@ if __name__ == "__main__":
     coords2 = mem.cache(detect_harris_detector)(image2, threshold=.999)
     key_points2 = utils.create_frames_from_harris_points(coords2)
 
+    coords3 = mem.cache(detect_harris_detector)(image3, threshold=.999)
+    key_points3 = utils.create_frames_from_harris_points(coords3)
+
+
     # Rearrange the keypoints to be close
     if 0:
         import hungarian
@@ -375,8 +447,6 @@ if __name__ == "__main__":
     f1, d1 = mem.cache(vl_sift)(np.array(image1, 'f', order='F'),
                      frames=key_points1,
                      orientations=False)
-
-    #import pdb; pdb.set_trace()
     f1, d1 = f1.transpose(), d1.transpose()
 
     # Get sift descriptors
@@ -385,48 +455,147 @@ if __name__ == "__main__":
                      orientations=False)
     f2, d2 = f2.transpose(), d2.transpose()
 
+    f3, d3 = mem.cache(vl_sift)(np.array(image3, 'f', order='F'),
+                     frames=key_points3,
+                     orientations=False)
+    f3, d3 = f3.transpose(), d3.transpose()
+
+
     matched_desc, matches_d = match_descriptors(d1, d2, f1, f2)
     matched_desc = np.array(matched_desc)
     matches_d = np.array(matches_d)
 
     image1 =  show_sift_desc(image1, f1)
     image2 =  show_sift_desc(image2, f2)
-#    image  = show_matched_desc(image1, image2, matched_desc)
-#    imshow(image)
+    image3 =  show_sift_desc(image3, f3)
+    match_image = show_matched_desc(image1, image2, matched_desc) 
 
-    # image 2 is base image. ie, we need to translate image1
-    image1b = np.zeros((image1.shape[0], image1.shape[1]+500))
-    image1b[:, 500:] = image1
-    image1 = image1b
-    image2b = np.zeros((image2.shape[0], image2.shape[1] + 500))
-    image2b[:, 500:] = image2
-    image2 = image2b
+    points12 = np.array([[386, 143, 157, 136],
+                         [327, 261, 87, 255],
+                         [738, 196, 489, 209],
+                         [584, 246, 364, 251]])
+    em12 = stitchLR(image1, image2, points12)
+
+    points32 = np.array([[431, 178, 65, 180],
+                         [545, 175, 190, 185],
+                         [445, 307, 77, 318],
+                         [720, 258, 347, 268],
+                         [543, 206, 188, 213],
+                         [740, 248, 367, 256]])
+
+    points23 = points32.copy()
+    points23[:, :2] = points32[:, 2:]
+    points23[:, 2:] = points32[:, :2]
+    em23 = stitchRL(image2, image3, points23)
+    em = np.zeros((image2.shape[0], image2.shape[1] + 1000))
+    em[:, :image2.shape[1] + 500] = em12
+    em[:, 500:] = em23
+    
+    imsave("breteuil.png", em)
+    return em
+
+def random_partition(n, n_data):
+    idxs = np.arange(n_data)
+    np.random.shuffle(idxs)
+    idxs1 = idxs[:n]
+    idxs2 = idxs[n:]
+    return idxs1, idxs2
+
+def error_homography(H, data):
+    X = np.ones((data.shape[0], 3))
+    Y = X.copy()
+    X[:, :2] = data[:, :2]
+    Y[:, :2] = data[:, 2:]
+    tX = np.dot(X, H)
+    e = np.sqrt((tX - Y)**2)
+    e = e.sum(axis=1)
+    return e
 
 
-    H1 = calculate_homography(
-                np.array([[51, 23, 340, 38],
-                          [62, 337, 359, 340],
-                          [395, 286, 691, 286],
-                          [367, 128, 655, 116]]))
-    points = np.array([[340, 38, 51, 23],
-                       [359, 340, 62, 337],
-                       [691, 286, 395, 286],
-                       [655, 116, 367, 128]])
-    points[:, 0] += 500
-    points[:,2] += 500
+#def test():
+if __name__ == "__main__":
 
-    H2 = calculate_homography(points)
+    mem = Memory(cachedir='.')
+    if 1:
+        image1 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
+        image2 = mean(imread('keble_b.jpg'), 2)[::-1].astype(np.float)
+    else:
+        image = np.zeros((300, 400))
+        image += 30
+        np.random.seed(0)
+        image += np.random.random(size=image.shape)
+        image[125:175, 125:175] = 125
+        image[100:150, 150:200] = 200
+        #image = ndimage.gaussian_filter(image, 3)
+        image1 = image.copy()[50:250, 70:270]
+        image2 = image.copy()[50:250, 50:250]
 
-    Hr = H2.copy()
-    Hr[0, 2] = 0
-    Hr[1, 2] = 0
-    image1H = transform.homography(image1, H2)
-#    image2Hr = np.zeros((image2.shape[0], 1500))
-#    image2Hr[:image2.shape[0], :image2.shape[1]] = image2
-#    image2Hr = transform.homography(image2Hr, Ht)
-#    em = image2Hr.copy()
-#    em[:image1.shape[0],:image1.shape[1]] = image1H
-    em = image1H + image2
-    em1 = em.copy()
-    em1[:, 500:] = image2[:, 500:]
 
+    # image2 = mean(imread('keble_b.jpg'), 2)[::-1]
+    #FIXME we assume that image1.shape = image2.shape
+
+    # the image is rotated
+    coords1 = mem.cache(detect_harris_detector)(image1, threshold=.995)
+    key_points1 = utils.create_frames_from_harris_points(coords1)
+
+    # the image is rotated
+    coords2 = mem.cache(detect_harris_detector)(image2, threshold=.995)
+    key_points2 = utils.create_frames_from_harris_points(coords2)
+
+    # Rearrange the keypoints to be close
+    if 0:
+        import hungarian
+        dist = euclidean_distances(key_points1.T, key_points2.T)
+        ordering = mem.cache(hungarian.hungarian)(dist)[:, 1]
+        key_points2 = key_points2[:, ordering]
+
+    f1, d1 = mem.cache(nelle_desc)(image1,
+                                   key_points1.T)
+
+    f2, d2 = mem.cache(nelle_desc)(image2,
+                                   key_points2.T)
+
+
+
+    matched_desc, matches_d = match_descriptors(d1, d2, f1, f2)
+    matched_desc = np.array(matched_desc)
+    matches_d = np.array(matches_d)
+
+    image1 =  show_sift_desc(image1, f1)
+    image2 =  show_sift_desc(image2, f2)
+    match_image = show_matched_desc(image1, image2, matched_desc.copy()) 
+    data = matched_desc
+
+    t = 1000
+    bestfit = None
+    besterr = 10000000000000000
+    best_inliners = None
+    d = 14
+    for iterations in range(50000):
+        fit_data, test_data = random_partition(4, data.shape[0])
+        fit_data = data[fit_data,:]
+        test_data = data[test_data]
+        
+        fit_H = calculate_homography(fit_data)
+        error = error_homography(fit_H, test_data)
+        inliners = test_data[error < t]
+        if 1:
+            if len(inliners) > d:
+                print error.min(), len(inliners)
+
+        if len(inliners) > d:
+            err = np.mean(error)
+            if err < besterr:
+                besterrr = err
+                bestfit = fit_H
+                best_inliners = np.concatenate((fit_data, inliners))
+
+    match_image2 = show_matched_desc(image1, image2, best_inliners.copy())
+    H2 = calculate_homography(best_inliners)
+    en = stitchLR(image1, image2, best_inliners)
+    # fit = calculate_homography(best_inliners)
+
+#if __name__ == "__main__":
+#    em_oxford = oxford()
+#    em_breteuil = breteuil()
+#
