@@ -10,6 +10,8 @@ from pylab import imread, imsave, imshow, mean
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.externals.joblib import Memory
 
+from skimage import transform
+
 from PIL import Image
 
 from harris import harris
@@ -111,7 +113,7 @@ def match_descriptors(d1, d2, f1, f2):
     eps = eps < THRESHOLD
 
     eps1 = (distances_N1 < 0.1)
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     eps = np.logical_or(eps1, eps)
 
@@ -289,16 +291,56 @@ def calculate_inertia(element):
     return inertia.argmin()
 
 
+def nelle_desc(image, frames):
+    size_x = 8
+    size_4
+    for frame in frames:
+        desc = image[frame[0] - 4:x + 4, frame[1] - 4:frame[1] + 4]
+
+def stitch(image1, image2, points):
+    """
+    Stitch image1 to image2, with points points
+    """
+    # image 2 is base image. ie, we need to translate image1
+    image1b = np.zeros((image1.shape[0], image1.shape[1]+500))
+    image1b[:, 500:] = image1
+    image1 = image1b
+    image2b = np.zeros((image2.shape[0], image2.shape[1] + 500))
+    image2b[:, 500:] = image2
+    image2 = image2b
+
+
+    H1 = calculate_homography(
+                np.array([[51, 23, 340, 38],
+                          [62, 337, 359, 340],
+                          [395, 286, 691, 286],
+                          [367, 128, 655, 116]]))
+    points = np.array([[340, 38, 51, 23],
+                       [359, 340, 62, 337],
+                       [691, 286, 395, 286],
+                       [655, 116, 367, 128]])
+    points[:, 0] += 500
+    points[:,2] += 500
+    # We translate the points
+
+    H2 = calculate_homography(points)
+
+    image1H = transform.homography(image1, H2)
+    em1 = em.copy()
+    em1[:, 500:] = image2[:, 500:]
+    return em1
+
+
 if __name__ == "__main__":
     # Sift descriptor doesn't work with color images. Let's stick with grey
     # images
     mem = Memory(cachedir='.')
-    if 0:
+    if 1:
         image1 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
-        image2 = mean(imread('keble_a.jpg'), 2)[::-1].astype(np.float)
-        image1 = image1[:300, :300]
+        image2 = mean(imread('keble_b.jpg'), 2)[::-1].astype(np.float)
+        image1 = image1
         # image2 = image1 + 10
-        image2 = image2[20:320, 20:320]
+        image2 = image2
     else:
         image = np.zeros((300, 400))
         image += 30
@@ -315,11 +357,11 @@ if __name__ == "__main__":
     #FIXME we assume that image1.shape = image2.shape
 
     # the image is rotated
-    coords1 = mem.cache(detect_harris_detector)(image1, threshold=.995)
+    coords1 = mem.cache(detect_harris_detector)(image1, threshold=.999)
     key_points1 = utils.create_frames_from_harris_points(coords1)
 
     # the image is rotated
-    coords2 = mem.cache(detect_harris_detector)(image2, threshold=.995)
+    coords2 = mem.cache(detect_harris_detector)(image2, threshold=.999)
     key_points2 = utils.create_frames_from_harris_points(coords2)
 
     # Rearrange the keypoints to be close
@@ -333,6 +375,7 @@ if __name__ == "__main__":
     f1, d1 = mem.cache(vl_sift)(np.array(image1, 'f', order='F'),
                      frames=key_points1,
                      orientations=False)
+
     #import pdb; pdb.set_trace()
     f1, d1 = f1.transpose(), d1.transpose()
 
@@ -348,15 +391,42 @@ if __name__ == "__main__":
 
     image1 =  show_sift_desc(image1, f1)
     image2 =  show_sift_desc(image2, f2)
-    image  = show_matched_desc(image1, image2, matched_desc)
-    imshow(image)
+#    image  = show_matched_desc(image1, image2, matched_desc)
+#    imshow(image)
+
+    # image 2 is base image. ie, we need to translate image1
+    image1b = np.zeros((image1.shape[0], image1.shape[1]+500))
+    image1b[:, 500:] = image1
+    image1 = image1b
+    image2b = np.zeros((image2.shape[0], image2.shape[1] + 500))
+    image2b[:, 500:] = image2
+    image2 = image2b
 
 
-    # Get the sift descriptors of the image using the pgm converted version of
-    # the image
-    # l1, d1 = get_sift_descriptors('keble_a.pgm')
+    H1 = calculate_homography(
+                np.array([[51, 23, 340, 38],
+                          [62, 337, 359, 340],
+                          [395, 286, 691, 286],
+                          [367, 128, 655, 116]]))
+    points = np.array([[340, 38, 51, 23],
+                       [359, 340, 62, 337],
+                       [691, 286, 395, 286],
+                       [655, 116, 367, 128]])
+    points[:, 0] += 500
+    points[:,2] += 500
 
-    # l2, d2 = get_sift_descriptors('keble_b.pgm')
-    # l3, d3 = get_sift_descriptors('keble_c.pgm')
+    H2 = calculate_homography(points)
 
+    Hr = H2.copy()
+    Hr[0, 2] = 0
+    Hr[1, 2] = 0
+    image1H = transform.homography(image1, H2)
+#    image2Hr = np.zeros((image2.shape[0], 1500))
+#    image2Hr[:image2.shape[0], :image2.shape[1]] = image2
+#    image2Hr = transform.homography(image2Hr, Ht)
+#    em = image2Hr.copy()
+#    em[:image1.shape[0],:image1.shape[1]] = image1H
+    em = image1H + image2
+    em1 = em.copy()
+    em1[:, 500:] = image2[:, 500:]
 
