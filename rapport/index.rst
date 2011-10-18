@@ -59,14 +59,16 @@ assignment, I have divided the work into two:
 Matching
 ````````````````````````````````````````````````````````````````````````````````
 
-For the matching, I used as threshold :math:`N1/N2` with a value of **0.65**.
-I also added a threshold of the distances :math:`N1` directly.
+For the matching, I used as threshold :math:`N1/N2` with a value of **0.6**.
 
 .. image:: matches.png
 
 Because of my poor descriptors, I do not have a high number of matches, and a
 lot of wrong ones. I computed the RANSAC with 5000 iterations, using as
 minimum matching value :math:`d = 10`
+Normally, 30-100 iterations are plenty enough, but I have more than 50% of
+outliers due to the sift descriptors missing.
+
 
 .. image:: matches_after_ransac.png
 
