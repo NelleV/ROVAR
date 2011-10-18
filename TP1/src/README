@@ -3,4 +3,7 @@ Dependencies:
 numpy
 scipy
 scikits.image
+sklearn
+vl_feat
+
 
