@@ -64,20 +64,91 @@ save('./data/aeroplane_vocabulary.mat','vocabulary');
 
 % FIXME do this for all the files
 % FIXME check that this hasn't been done already, and skip this if it has.
-list = textread('./data/image_lists/aeroplane_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, list);
-save('./data/histograms/aeroplane_train_hist.mat','histograms', 'list');
-
-
+names = textread('./data/image_lists/aeroplane_train.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/aeroplane_train_hist.mat','histograms', 'names');
 
 
 list = textread('./data/image_lists/background_train.txt','%s');
 vocabulary = computeVocabularyFromImageList(list);
 save('./data/background_vocabulary.mat','vocabulary');
 
-list = textread('./data/image_lists/background_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, list);
-save('./data/histograms/background_train_hist.mat','histograms', 'list');
+names = textread('./data/image_lists/background_train.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/background_train_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/background_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/background_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/background_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/background_val_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/aeroplane_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/aeroplane_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/aeroplane_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/aeroplane_val_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/car_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/acar_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/car_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/car_val_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/horse_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/horse_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/horse_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/horse_val_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/motorbike_train.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/motorbike_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/motorbike_train.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/motorbike_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/motorbike_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/motorbike_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/motorbike_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/motorbike_val_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/person_train.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/person_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/person_train.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/person_hist.mat','histograms', 'names');
+
+
+list = textread('./data/image_lists/person_val.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/person_val_vocabulary.mat','vocabulary');
+
+names = textread('./data/image_lists/person_val.txt','%s');
+histograms = computeHistogramsFromImageList(vocabulary, names);
+save('./data/histograms/person_val_hist.mat','histograms', 'names');
+
 %------------------------------------
 
 
@@ -99,6 +170,23 @@ vl_plotframe([col(1:50:end); row(1:50:end); radius(1:50:end)]); % visual keypoin
 axis image;
 
 
+% Let's determine the scales used, and the number of sift desc extracted
+% for each scale
+scale = 0;
+scalecount = 0;
+K = 36893;
+for i=1:K,
+    if keypoints(4, i) == scale
+        scalecount = scalecount + 1;
+    else
+        disp(strcat('scale : ', num2str(scale)));
+        disp(strcat('scale count : ', num2str(scalecount)));
+        scale = keypoints(4, i);
+        scalecount = 1;
+    end;
+end;
+disp(strcat('scale : ', num2str(scale)));
+disp(strcat('scale count : ', num2str(scalecount)));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
