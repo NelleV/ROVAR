@@ -17,8 +17,9 @@ if isstr(im)
 end
 im0 = standardizeImage(im) ;
 
-vocabulary = load('data/vocabulary.mat') ;
-numWords = size(vocabulary.words,2) ;
+voc = load('data/vocabulary.mat') ;
+vocabulary = voc.vocabulary
+numWords = size(voc.vocabulary.words,2) ;
 
 width = size(im,2) ;
 height= size(im,1) ;

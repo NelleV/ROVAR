@@ -96,13 +96,13 @@ setup;
 %save('./data/histograms/aeroplane_val_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/car_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/acar_val_vocabulary.mat','vocabulary');
+%list = textread('./data/image_lists/car_val.txt','%s');
+%vocabulary = computeVocabularyFromImageList(list);
+%save('./data/car_val_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/car_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/car_val_hist.mat','histograms', 'names');
+%names = textread('./data/image_lists/car_val.txt','%s');
+%histograms = computeHistogramsFromImageList(vocabulary, names);
+%save('./data/histograms/car_val_hist.mat','histograms', 'names');
 
 
 list = textread('./data/image_lists/horse_val.txt','%s');
@@ -237,7 +237,9 @@ figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 % visualize visual words by relevance on the first image
-% displayRelevantVisualWords(names{1},w)
+% To visualize the words, I had to create vocabulary.mat, and modify the
+% method. See git repository for more information.
+% displayRelevantVisualWords(names{1}, w)
 
 
 
