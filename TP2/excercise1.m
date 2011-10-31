@@ -509,7 +509,61 @@ fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 
 % Write your code here:
 %------------------------------------
 
+% load training data
+pos = load('./data/histograms/aeroplane_train_hist.mat') ;
+neg = load('./data/histograms/background_train_hist.mat');
+names = {pos.names{:}, neg.names{:}};
+histograms = [pos.histograms, neg.histograms] ;
+labels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
 
+% load testing data
+pos = load('data/histograms/aeroplane_val_hist.mat') ;
+neg = load('data/histograms/background_val_hist.mat') ;
+testNames = {pos.names{:}, neg.names{:}};
+testHistograms = [pos.histograms, neg.histograms] ;
+testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+
+% l2 normalize the histograms before running the linear svm
+histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
+testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
+
+% train the linear svm. the svm paramter c should be
+% cross-validated. here for simplicity we pick a value that works
+% well with all kernels.
+c = 100 ;
+[w, bias] = trainLinearSVM(histograms, labels, c) ;
+
+% evaluate the scores on the training data
+scores = w' * histograms + bias ;
+
+% visualize the ranked list of images
+figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+displayRankedImageList(names, scores)  ;
+
+% visualize the precision-recall curve
+figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+vl_pr(labels, scores) ;
+
+% Test the linar SVM
+testScores = w' * testHistograms + bias ;
+
+% Visualize the ranked list of images
+figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+displayRankedImageList(testNames, testScores)  ;
+
+% Visualize the precision-recall curve
+figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+vl_pr(testLabels, testScores) ;
+
+% Print results
+[drop,drop,info] = vl_pr(testLabels, testScores) ;
+fprintf('Test AP: %.2f\n', info.auc) ;
+
+[drop,perm] = sort(testScores,'descend') ;
+fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 %------------------------------------
 
