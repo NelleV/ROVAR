@@ -42,9 +42,6 @@ list = textread('./data/image_lists/aeroplane_train.txt','%s');
 vocabulary = computeVocabularyFromImageList(list);
 save('./data/aeroplane_vocabulary.mat','vocabulary');
 
-list = textread('./data/image_lists/background_train.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/background_vocabulary.mat','vocabulary');
 %------------------------------------
 
 
@@ -69,11 +66,18 @@ save('./data/background_vocabulary.mat','vocabulary');
 % FIXME check that this hasn't been done already, and skip this if it has.
 list = textread('./data/image_lists/aeroplane_train.txt','%s');
 histograms = computeHistogramsFromImageList(vocabulary, list);
-save('./data/histograms/aeroplane_train.mat','histograms');
+save('./data/histograms/aeroplane_train_hist.mat','histograms', 'list');
+
+
+
+
+list = textread('./data/image_lists/background_train.txt','%s');
+vocabulary = computeVocabularyFromImageList(list);
+save('./data/background_vocabulary.mat','vocabulary');
 
 list = textread('./data/image_lists/background_train.txt','%s');
 histograms = computeHistogramsFromImageList(vocabulary, list);
-save('./data/histograms/background_train.mat','histograms');
+save('./data/histograms/background_train_hist.mat','histograms', 'list');
 %------------------------------------
 
 
@@ -102,8 +106,8 @@ axis image;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % load training data
-pos = load('data/histograms/aeroplane_train_hist.mat') ;
-neg = load('data/histograms/background_train_hist.mat');
+pos = load('./data/histograms/aeroplane_train_hist.mat') ;
+neg = load('./data/histograms/background_train_hist.mat');
 names = {pos.names{:}, neg.names{:}};
 histograms = [pos.histograms, neg.histograms] ;
 labels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
