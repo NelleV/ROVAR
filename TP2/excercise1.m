@@ -105,49 +105,49 @@ setup;
 %save('./data/histograms/car_val_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/horse_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/horse_val_vocabulary.mat','vocabulary');
+% list = textread('./data/image_lists/horse_val.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/horse_val_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/horse_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/horse_val_hist.mat','histograms', 'names');
-
-
-list = textread('./data/image_lists/motorbike_train.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/motorbike_vocabulary.mat','vocabulary');
-
-names = textread('./data/image_lists/motorbike_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/motorbike_hist.mat','histograms', 'names');
+% names = textread('./data/image_lists/horse_val.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/horse_val_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/motorbike_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/motorbike_val_vocabulary.mat','vocabulary');
+% list = textread('./data/image_lists/motorbike_train.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/motorbike_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/motorbike_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/motorbike_val_hist.mat','histograms', 'names');
-
-
-list = textread('./data/image_lists/person_train.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/person_vocabulary.mat','vocabulary');
-
-names = textread('./data/image_lists/person_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/person_hist.mat','histograms', 'names');
+% names = textread('./data/image_lists/motorbike_train.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/motorbike_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/person_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/person_val_vocabulary.mat','vocabulary');
+% list = textread('./data/image_lists/motorbike_val.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/motorbike_val_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/person_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/person_val_hist.mat','histograms', 'names');
+% names = textread('./data/image_lists/motorbike_val.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/motorbike_val_hist.mat','histograms', 'names');
+
+
+% list = textread('./data/image_lists/person_train.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/person_vocabulary.mat','vocabulary');
+
+% names = textread('./data/image_lists/person_train.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/person_hist.mat','histograms', 'names');
+
+
+% list = textread('./data/image_lists/person_val.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/person_val_vocabulary.mat','vocabulary');
+
+% names = textread('./data/image_lists/person_val.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/person_val_hist.mat','histograms', 'names');
 
 %------------------------------------
 
@@ -277,6 +277,133 @@ fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 
 
 % Write your code here:
 %------------------------------------
+
+%%%% MOTORBIKE %%%%
+
+% load training data
+pos = load('./data/histograms/motorbike_train_hist.mat') ;
+neg = load('./data/histograms/background_train_hist.mat');
+names = {pos.names{:}, neg.names{:}};
+histograms = [pos.histograms, neg.histograms] ;
+labels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% load testing data
+pos = load('data/histograms/motorbike_val_hist.mat') ;
+neg = load('data/histograms/background_val_hist.mat') ;
+testNames = {pos.names{:}, neg.names{:}};
+testHistograms = [pos.histograms, neg.histograms] ;
+testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% count how many images are there
+fprintf('Number of training images: %d positive, %d negative\n', ...
+    sum(labels > 0), sum(labels < 0)) ;
+fprintf('Number of testing images: %d positive, %d negative\n', ...
+    sum(testLabels > 0), sum(testLabels < 0)) ;
+
+% l2 normalize the histograms before running the linear svm
+histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
+testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
+
+% train the linear svm. the svm paramter c should be
+% cross-validated. here for simplicity we pick a value that works
+% well with all kernels.
+c = 100 ;
+[w, bias] = trainLinearSVM(histograms, labels, c) ;
+
+% evaluate the scores on the training data
+scores = w' * histograms + bias ;
+
+% visualize the ranked list of images
+figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+displayRankedImageList(names, scores)  ;
+
+% visualize the precision-recall curve
+figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+vl_pr(labels, scores) ;
+
+testScores = w' * testHistograms + bias ;
+
+% Visualize the ranked list of images
+figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+displayRankedImageList(testNames, testScores)  ;
+
+% Visualize the precision-recall curve
+figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+vl_pr(testLabels, testScores) ;
+
+% Print results
+[drop,drop,info] = vl_pr(testLabels, testScores) ;
+fprintf('Test AP: %.2f\n', info.auc) ;
+
+[drop,perm] = sort(testScores,'descend') ;
+fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+
+%%% PERSON %%%
+
+
+
+% load training data
+pos = load('./data/histograms/person_train_hist.mat') ;
+neg = load('./data/histograms/background_train_hist.mat');
+names = {pos.names{:}, neg.names{:}};
+histograms = [pos.histograms, neg.histograms] ;
+labels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% load testing data
+pos = load('data/histograms/person_val_hist.mat') ;
+neg = load('data/histograms/background_val_hist.mat') ;
+testNames = {pos.names{:}, neg.names{:}};
+testHistograms = [pos.histograms, neg.histograms] ;
+testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% count how many images are there
+fprintf('Number of training images: %d positive, %d negative\n', ...
+    sum(labels > 0), sum(labels < 0)) ;
+fprintf('Number of testing images: %d positive, %d negative\n', ...
+    sum(testLabels > 0), sum(testLabels < 0)) ;
+
+% l2 normalize the histograms before running the linear svm
+histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
+testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
+
+% train the linear svm. the svm paramter c should be
+% cross-validated. here for simplicity we pick a value that works
+% well with all kernels.
+c = 100 ;
+[w, bias] = trainLinearSVM(histograms, labels, c) ;
+
+% evaluate the scores on the training data
+scores = w' * histograms + bias ;
+
+% visualize the ranked list of images
+figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+displayRankedImageList(names, scores)  ;
+
+% visualize the precision-recall curve
+figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+vl_pr(labels, scores) ;
+
+testScores = w' * testHistograms + bias ;
+
+% Visualize the ranked list of images
+figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+displayRankedImageList(testNames, testScores)  ;
+
+% Visualize the precision-recall curve
+figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+vl_pr(testLabels, testScores) ;
+
+% Print results
+[drop,drop,info] = vl_pr(testLabels, testScores) ;
+fprintf('Test AP: %.2f\n', info.auc) ;
+
+[drop,perm] = sort(testScores,'descend') ;
+fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+
 
 
 %------------------------------------
