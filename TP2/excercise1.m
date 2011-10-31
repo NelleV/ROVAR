@@ -215,9 +215,9 @@ testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
 clear pos neg ;
 
 % count how many images are there
-fprintf('Number of training images: %d positive, %d negative\n', ...
+fprintf('Stage B: Number of training images: %d positive, %d negative\n', ...
     sum(labels > 0), sum(labels < 0)) ;
-fprintf('Number of testing images: %d positive, %d negative\n', ...
+fprintf('Stage B: Number of testing images: %d positive, %d negative\n', ...
     sum(testLabels > 0), sum(testLabels < 0)) ;
 
 % l2 normalize the histograms before running the linear svm
@@ -234,11 +234,11 @@ c = 100 ;
 scores = w' * histograms + bias ;
 
 % visualize the ranked list of images
-figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+figure(1) ; clf ; set(1,'name','Stage B: ranked training images (subset)') ;
 displayRankedImageList(names, scores)  ;
 
 % visualize the precision-recall curve
-figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+figure(2) ; clf ; set(2,'name','Stage B: precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 % visualize visual words by relevance on the first image
@@ -257,19 +257,19 @@ vl_pr(labels, scores) ;
 testScores = w' * testHistograms + bias ;
 
 % Visualize the ranked list of images
-figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+figure(3) ; clf ; set(3,'name','Stage C: Ranked test images (subset)') ;
 displayRankedImageList(testNames, testScores)  ;
 
 % Visualize the precision-recall curve
-figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+figure(4) ; clf ; set(4,'name','Stage C: Precision-recall on test data') ;
 vl_pr(testLabels, testScores) ;
 
 % Print results
 [drop,drop,info] = vl_pr(testLabels, testScores) ;
-fprintf('Test AP: %.2f\n', info.auc) ;
+fprintf('Stage C: Test AP: %.2f\n', info.auc) ;
 
 [drop,perm] = sort(testScores,'descend') ;
-fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+fprintf('Stage C: Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 
 
@@ -302,9 +302,9 @@ testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
 clear pos neg ;
 
 % count how many images are there
-fprintf('Number of training images: %d positive, %d negative\n', ...
+fprintf('Stage D: Number of training images: %d positive, %d negative\n', ...
     sum(labels > 0), sum(labels < 0)) ;
-fprintf('Number of testing images: %d positive, %d negative\n', ...
+fprintf('Stage D: Number of testing images: %d positive, %d negative\n', ...
     sum(testLabels > 0), sum(testLabels < 0)) ;
 
 % l2 normalize the histograms before running the linear svm
@@ -321,29 +321,29 @@ c = 100 ;
 scores = w' * histograms + bias ;
 
 % visualize the ranked list of images
-figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+figure(5) ; clf ; set(1,'name','Stage D: ranked training images (subset)') ;
 displayRankedImageList(names, scores)  ;
 
 % visualize the precision-recall curve
-figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+figure(6) ; clf ; set(2,'name','Stage D: precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 testScores = w' * testHistograms + bias ;
 
 % Visualize the ranked list of images
-figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+figure(7) ; clf ; set(3,'name','Stage D: Ranked test images (subset)') ;
 displayRankedImageList(testNames, testScores)  ;
 
 % Visualize the precision-recall curve
-figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+figure(8) ; clf ; set(4,'name','Stage D: Precision-recall on test data') ;
 vl_pr(testLabels, testScores) ;
 
 % Print results
 [drop,drop,info] = vl_pr(testLabels, testScores) ;
-fprintf('Test AP: %.2f\n', info.auc) ;
+fprintf('Stage D: Test AP: %.2f\n', info.auc) ;
 
 [drop,perm] = sort(testScores,'descend') ;
-fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+fprintf('Stage D: Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 %%% PERSON %%%
 
@@ -366,9 +366,9 @@ testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
 clear pos neg ;
 
 % count how many images are there
-fprintf('Number of training images: %d positive, %d negative\n', ...
+fprintf('Stage D: Number of training images: %d positive, %d negative\n', ...
     sum(labels > 0), sum(labels < 0)) ;
-fprintf('Number of testing images: %d positive, %d negative\n', ...
+fprintf('Stage D: Number of testing images: %d positive, %d negative\n', ...
     sum(testLabels > 0), sum(testLabels < 0)) ;
 
 % l2 normalize the histograms before running the linear svm
@@ -385,29 +385,29 @@ c = 100 ;
 scores = w' * histograms + bias ;
 
 % visualize the ranked list of images
-figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+figure(9) ; clf ; set(1,'name','Stage D: ranked training images (subset)') ;
 displayRankedImageList(names, scores)  ;
 
 % visualize the precision-recall curve
-figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+figure(10) ; clf ; set(2,'name','Stage D: precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 testScores = w' * testHistograms + bias ;
 
 % Visualize the ranked list of images
-figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+figure(11) ; clf ; set(3,'name','Stage D: Ranked test images (subset)') ;
 displayRankedImageList(testNames, testScores)  ;
 
 % Visualize the precision-recall curve
-figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+figure(12) ; clf ; set(4,'name','Stade D: Precision-recall on test data') ;
 vl_pr(testLabels, testScores) ;
 
 % Print results
 [drop,drop,info] = vl_pr(testLabels, testScores) ;
-fprintf('Test AP: %.2f\n', info.auc) ;
+fprintf('Stage D: Test AP: %.2f\n', info.auc) ;
 
 [drop,perm] = sort(testScores,'descend') ;
-fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+fprintf('Stage D: Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 
 
@@ -466,30 +466,30 @@ c = 100 ;
 scores = w' * histograms + bias ;
 
 % visualize the ranked list of images
-figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+figure(13) ; clf ; set(1,'name','Stage E: ranked training images (subset)') ;
 displayRankedImageList(names, scores)  ;
 
 % visualize the precision-recall curve
-figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+figure(14) ; clf ; set(2,'name','Stage E: precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 % Test the linar SVM
 testScores = w' * testHistograms + bias ;
 
 % Visualize the ranked list of images
-figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+figure(15) ; clf ; set(3,'name','Stage E: Ranked test images (subset)') ;
 displayRankedImageList(testNames, testScores)  ;
 
 % Visualize the precision-recall curve
-figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+figure(16) ; clf ; set(4,'name','Stage E: Precision-recall on test data') ;
 vl_pr(testLabels, testScores) ;
 
 % Print results
 [drop,drop,info] = vl_pr(testLabels, testScores) ;
-fprintf('Test AP: %.2f\n', info.auc) ;
+fprintf('Stage E: Test AP: %.2f\n', info.auc) ;
 
 [drop,perm] = sort(testScores,'descend') ;
-fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+fprintf('Stage E: correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 %------------------------------------
 
@@ -525,10 +525,13 @@ testHistograms = [pos.histograms, neg.histograms] ;
 testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
 clear pos neg ;
 
+% Take the sqrt of the histograms
+histograms = sqrt(histograms) ;
+testHistograms = sqrt(testHistograms);
 
 % l2 normalize the histograms before running the linear svm
-histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
-testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
+%histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
+%testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
 
 % train the linear svm. the svm paramter c should be
 % cross-validated. here for simplicity we pick a value that works
@@ -540,30 +543,30 @@ c = 100 ;
 scores = w' * histograms + bias ;
 
 % visualize the ranked list of images
-figure(1) ; clf ; set(1,'name','ranked training images (subset)') ;
+figure(17) ; clf ; set(1,'name','Stage F: ranked training images (subset)') ;
 displayRankedImageList(names, scores)  ;
 
 % visualize the precision-recall curve
-figure(2) ; clf ; set(2,'name','precision-recall on train data') ;
+figure(18) ; clf ; set(2,'name','Stage F: precision-recall on train data') ;
 vl_pr(labels, scores) ;
 
 % Test the linar SVM
 testScores = w' * testHistograms + bias ;
 
 % Visualize the ranked list of images
-figure(3) ; clf ; set(3,'name','Ranked test images (subset)') ;
+figure(19) ; clf ; set(3,'name','Stage F: Ranked test images (subset)') ;
 displayRankedImageList(testNames, testScores)  ;
 
 % Visualize the precision-recall curve
-figure(4) ; clf ; set(4,'name','Precision-recall on test data') ;
+figure(20) ; clf ; set(4,'name','Stage F: Precision-recall on test data') ;
 vl_pr(testLabels, testScores) ;
 
 % Print results
 [drop,drop,info] = vl_pr(testLabels, testScores) ;
-fprintf('Test AP: %.2f\n', info.auc) ;
+fprintf('Stage F: Test AP: %.2f\n', info.auc) ;
 
 [drop,perm] = sort(testScores,'descend') ;
-fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
+fprintf('Stage F: Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 
 %------------------------------------
 
@@ -579,6 +582,38 @@ fprintf('Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 
 %
 % fraction = .1 ; % fraction of data to keep
 % fraction = .5 ;
+% fraction = +inf ;
+%sel = vl_colsubset(1:numel(labels), fraction, 'uniform') ;
+%names = names(sel) ;
+%histograms = histograms(:,sel) ;
+%labels = labels(:,sel) ;
+%clear sel ;
+
+
+% Write your code here:
+%------------------------------------
+
+
+% load training data
+pos = load('./data/histograms/aeroplane_train_hist.mat') ;
+neg = load('./data/histograms/background_train_hist.mat');
+names = {pos.names{:}, neg.names{:}};
+histograms = [pos.histograms, neg.histograms] ;
+labels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% load testing data
+pos = load('data/histograms/aeroplane_val_hist.mat') ;
+neg = load('data/histograms/background_val_hist.mat') ;
+testNames = {pos.names{:}, neg.names{:}};
+testHistograms = [pos.histograms, neg.histograms] ;
+testLabels = [ones(1,numel(pos.names)), - ones(1,numel(neg.names))] ;
+clear pos neg ;
+
+% let's keep only a fraction of the training data, to see the impact on the
+% results
+fraction = .1 ; % fraction of data to keep
+fraction = .5 ;
 fraction = +inf ;
 sel = vl_colsubset(1:numel(labels), fraction, 'uniform') ;
 names = names(sel) ;
@@ -586,11 +621,50 @@ histograms = histograms(:,sel) ;
 labels = labels(:,sel) ;
 clear sel ;
 
+% count how many images are there
+fprintf('Stage B: Number of training images: %d positive, %d negative\n', ...
+    sum(labels > 0), sum(labels < 0)) ;
+fprintf('Stage B: Number of testing images: %d positive, %d negative\n', ...
+    sum(testLabels > 0), sum(testLabels < 0)) ;
 
-% Write your code here:
-%------------------------------------
+% l2 normalize the histograms before running the linear svm
+histograms = bsxfun(@times, histograms, 1./sqrt(sum(histograms.^2,1))) ;
+testHistograms = bsxfun(@times, testHistograms, 1./sqrt(sum(testHistograms.^2,1))) ;
 
+% train the linear svm. the svm paramter c should be
+% cross-validated. here for simplicity we pick a value that works
+% well with all kernels.
+c = 100 ;
+[w, bias] = trainLinearSVM(histograms, labels, c) ;
 
+% evaluate the scores on the training data
+scores = w' * histograms + bias ;
+
+% visualize the ranked list of images
+figure(21) ; clf ; set(1,'name','Stage G: ranked training images (subset)') ;
+displayRankedImageList(names, scores)  ;
+
+% visualize the precision-recall curve
+figure(22) ; clf ; set(2,'name','Stage G: precision-recall on train data') ;
+vl_pr(labels, scores) ;
+
+% Test the linar SVM
+testScores = w' * testHistograms + bias ;
+
+% Visualize the ranked list of images
+figure(23) ; clf ; set(3,'name','Stage G: Ranked test images (subset)') ;
+displayRankedImageList(testNames, testScores)  ;
+
+% Visualize the precision-recall curve
+figure(24) ; clf ; set(4,'name','Stage G: Precision-recall on test data') ;
+vl_pr(testLabels, testScores) ;
+
+% Print results
+[drop,drop,info] = vl_pr(testLabels, testScores) ;
+fprintf('Stage G: Test AP: %.2f\n', info.auc) ;
+
+[drop,perm] = sort(testScores,'descend') ;
+fprintf('Stage G: Correctly retrieved in the top 36: %d\n', sum(testLabels(perm(1:36)) > 0)) ;
 %------------------------------------
 
 
