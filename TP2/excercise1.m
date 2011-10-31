@@ -623,7 +623,7 @@ clear sel ;
 
 % count how many images are there
 fprintf('Stage B: Number of training images: %d positive, %d negative\n', ...
-    sum(labels > 0), sum(labels < 0)) ;
+    sum(labels > 0), sum(labels < 0)) ;g
 fprintf('Stage B: Number of testing images: %d positive, %d negative\n', ...
     sum(testLabels > 0), sum(testLabels < 0)) ;
 
