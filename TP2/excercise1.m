@@ -35,12 +35,11 @@ setup;
 % Write your code here:
 %------------------------------------
 
-% FIXME - needs to do that for all the different types of images
-
 % FIXME check that this hasn't been done already, and skip this if it has.
-list = textread('./data/image_lists/aeroplane_train.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/aeroplane_vocabulary.mat','vocabulary');
+
+% list = textread('./data/image_lists/aeroplane_train.txt','%s');
+% vocabulary = computeVocabularyFromImageList(list);
+% save('./data/aeroplane_vocabulary.mat','vocabulary');
 
 %------------------------------------
 
@@ -64,36 +63,37 @@ save('./data/aeroplane_vocabulary.mat','vocabulary');
 
 % FIXME do this for all the files
 % FIXME check that this hasn't been done already, and skip this if it has.
-names = textread('./data/image_lists/aeroplane_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/aeroplane_train_hist.mat','histograms', 'names');
+
+% names = textread('./data/image_lists/aeroplane_train.txt','%s');
+% histograms = computeHistogramsFromImageList(vocabulary, names);
+% save('./data/histograms/aeroplane_train_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/background_train.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/background_vocabulary.mat','vocabulary');
+%list = textread('./data/image_lists/background_train.txt','%s');
+%vocabulary = computeVocabularyFromImageList(list);
+%save('./data/background_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/background_train.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/background_train_hist.mat','histograms', 'names');
-
-
-list = textread('./data/image_lists/background_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/background_val_vocabulary.mat','vocabulary');
-
-names = textread('./data/image_lists/background_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/background_val_hist.mat','histograms', 'names');
+%names = textread('./data/image_lists/background_train.txt','%s');
+%histograms = computeHistogramsFromImageList(vocabulary, names);
+%save('./data/histograms/background_train_hist.mat','histograms', 'names');
 
 
-list = textread('./data/image_lists/aeroplane_val.txt','%s');
-vocabulary = computeVocabularyFromImageList(list);
-save('./data/aeroplane_val_vocabulary.mat','vocabulary');
+%list = textread('./data/image_lists/background_val.txt','%s');
+%vocabulary = computeVocabularyFromImageList(list);
+%save('./data/background_val_vocabulary.mat','vocabulary');
 
-names = textread('./data/image_lists/aeroplane_val.txt','%s');
-histograms = computeHistogramsFromImageList(vocabulary, names);
-save('./data/histograms/aeroplane_val_hist.mat','histograms', 'names');
+%names = textread('./data/image_lists/background_val.txt','%s');
+%histograms = computeHistogramsFromImageList(vocabulary, names);
+%save('./data/histograms/background_val_hist.mat','histograms', 'names');
+
+
+%list = textread('./data/image_lists/aeroplane_val.txt','%s');
+%vocabulary = computeVocabularyFromImageList(list);
+%save('./data/aeroplane_val_vocabulary.mat','vocabulary');
+
+%names = textread('./data/image_lists/aeroplane_val.txt','%s');
+%histograms = computeHistogramsFromImageList(vocabulary, names);
+%save('./data/histograms/aeroplane_val_hist.mat','histograms', 'names');
 
 
 list = textread('./data/image_lists/car_val.txt','%s');
