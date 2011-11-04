@@ -35,3 +35,45 @@ Question B2
 .. image:: QB1_6.jpg
 
 
+Stage C: Classify the test images and assess the performance
+================================================================================
+
+The bias term isn't necessary for image ranking, as the ranking is done by
+comparing two scores. Therefore, the bias term is annulated when doing the
+comparison.
+
+
+The Average Precision on this dataset is 99% ! All of the 36 top images are
+correct matches.
+
+Stage D: Learn a classifier for the other classes and assess its performance
+================================================================================
+
+Motorbike
+--------------------------------------------------------------------------------
+
+.. image:: 05.jpg
+
+.. image:: 06.jpg
+
+.. image:: 07.jpg
+
+.. image:: 08.jpg
+
+.. FIXME there must be a problem with the AP
+
+Person
+--------------------------------------------------------------------------------
+
+.. image:: 09.jpg
+
+.. image:: 10.jpg
+
+.. image:: 11.jpg
+
+.. image:: 12.jpg
+
+
+The person
+
+
