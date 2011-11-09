@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.externals.joblib import Memory
@@ -38,7 +38,7 @@ X, y = mem.cache(format_data)()
 ################################################################################
 # Split data into training set and testing set
 print "Splitting the data"
-train, test = iter(StratifiedKFold(y, k=4)).next()
+test, train = iter(StratifiedKFold(y, k=20)).next()
 X_train, X_test = X[train], X[test]
 y_train, y_test = y[train], y[test]
 
@@ -46,22 +46,22 @@ y_train, y_test = y[train], y[test]
 # Train the SVM classification model
 print "Training the classification model"
 param_grid = {
- 'C': [1, 5, 10, 50, 100],
-  'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1],
+  'C': [1, 5, 10, 50, 100]
   }
 
-clf = mem.cache(GridSearchCV)(SVC(kernel='rbf'), param_grid,
+clf = GridSearchCV(LinearSVC(), param_grid,
                    fit_params={'class_weight': 'auto'})
-clf = mem.cache(clf.fit)(X_train, y_train)
+clf = clf.fit(X_train, y_train)
 print "Best estimator found by grid search:"
 print clf.best_estimator
 
 ################################################################################
 # Let's test the classifier
+print "Testing the classifier"
+y_pred = clf.predict(X_test)
 
-y_pred = mem.cache(clf.predict)(X_test)
-print classification_report(y_test, y_pred, target_names=target_names)
-print confusion_matrix(y_test, y_pred, labels=range(n_classes))
+print classification_report(y_test, y_pred)
+print confusion_matrix(y_test, y_pred)
 
 
 

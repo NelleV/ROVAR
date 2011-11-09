@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import io
+from matplotlib import pyplot as plt
 
 negsamples = '../data/negsamples.mat'
 possamples = '../data/possamples.mat'
@@ -19,6 +20,7 @@ def load_data():
     neg = io.matlab.mio.loadmat(negsamples)
     return pos['possamples'], neg['negsamples']
 
+
 def normalise(images):
     """
     Normalises the images
@@ -34,6 +36,25 @@ def normalise(images):
                                                          images.shape[1]))
     norm_images = (images - mean) / cov
     return norm_images
+
+
+def plot_gallery(images, title, h, w, n_row=3, n_col=4):
+    """
+    Plots a gallery
+
+    Code stolen from sklearn - http://tinyurl.com/cmked78
+    """
+
+    plt.figure(figsize=(1.8 * n_col, 2.4 * n_row))
+    plt.subpltots_adjust(bottom=0, left=.01, right=.99, top=.90,
+        hspace=.35)
+    for i in range(n_row * n_col):
+        plt.subpltot(n_row, n_col, i + 1)
+        plt.imshow(images[i].reshape((h, w)),
+                  cmap=plt.cm.gray)
+        plt.title(titles[i], size=12)
+        plt.xticks(())
+        plt.yticks(())
 
 
 if __name__ == "__main__":
