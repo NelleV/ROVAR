@@ -66,8 +66,8 @@ def format_data(shuffle=True):
     pos_norm = normalise(pos)
     neg_norm = normalise(neg)
 
-    svm_pos = pos.reshape((pos.shape[0] * pos.shape[1], pos.shape[2]))
-    svm_neg = neg.reshape((neg.shape[0] * neg.shape[1], neg.shape[2]))
+    svm_pos = pos_norm.reshape((pos.shape[0] * pos.shape[1], pos.shape[2]))
+    svm_neg = neg_norm.reshape((neg.shape[0] * neg.shape[1], neg.shape[2]))
 
     # Let's format the data in a nicer way
     X = np.concatenate((svm_pos, svm_neg), axis=1).T
@@ -80,15 +80,24 @@ def format_data(shuffle=True):
     return X[idxs,:], y[idxs,:]
 
 
-def generate_bounding_boxes(image):
+def generate_bounding_boxes(image, pix=4):
     """
-    Generates all bounding boxes from a given image
+    Generates bounding boxes from a given image
+
+    params
+    ------
+        image
+        pix
+
+    returns
+    -------
+        ndarray
     """
     w, h = image.shape
     boxes = []
-    for i in range(w - 24):
-        for j in range(h - 24):
-            boxes.append(image[i:i + 24, j:j + 24])
+    for i in range((w - 24) / 4):
+        for j in range((h - 24) / 4):
+            boxes.append(image[i * pix:i * pix + 24, j * pix:j * pix + 24])
     boxes = np.array(boxes).T
     norm_boxes = normalise(boxes)
     reshaped_boxes = norm_boxes.reshape(
@@ -97,11 +106,38 @@ def generate_bounding_boxes(image):
     return reshaped_boxes.T
 
 
+def show_positive_boxes(image, labels):
+    """
+    Returns an image with the positive bounding boxes drawn
+
+    params
+    -------
+        image
+        labels
+
+    returns
+    -------
+        image
+    """
+    from skimage.draw import bresenham
+    image = image.copy()
+    for i, label in enumerate(labels):
+        if label:
+            x0 = 4 * i % 24
+            y0 = 4 * i - (i % (4 * 24)) % 24
+            image[bresenham(x0, y0, x0 + 24, y0)] = 0
+            image[bresenham(x0, y0, x0, y0 + 24)] = 0
+            image[bresenham(x0 + 24, y0, x0 + 24, y0 + 24)] = 0
+            image[bresenham(x0, y0 + 24, x0 + 24, y0 + 24)] = 0
+    return image
+
+
 def merge_bounding_boxes(image, boxes, labels):
     """
     Merges bounding boxes
     """
     print "" 
+
 
 if __name__ == "__main__":
     pos, neg = load_data()

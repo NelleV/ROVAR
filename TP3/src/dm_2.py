@@ -10,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.externals.joblib import Memory
 
 from utils import format_data, generate_bounding_boxes, normalise
-
+from utils import show_positive_boxes
 
 # Using joblib allows to cache some of the results, in order to gain time on
 # computation
@@ -32,15 +32,4 @@ im1 = imread('../data/img1.jpg')[::-1].mean(axis=2)
 boxes1 = mem.cache(generate_bounding_boxes)(im1)
 
 labels1 = clf.predict(boxes1)
-
-im2 = imread('../data/img2.jpg')[::-1].mean(axis=2)
-boxes2 = mem.cache(generate_bounding_boxes)(im2)
-
-labels2 = clf.predict(boxes2)
-
-im3 = imread('../data/img3.jpg')[::-1].mean(axis=2)
-boxes3 = mem.cache(generate_bounding_boxes)(im3)
-
-labels3 = clf.predict(boxes3)
-
-
+image = show_positive_boxes(im1, labels1)
