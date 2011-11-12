@@ -29,7 +29,22 @@ clf = mem.cache(clf.fit)(X, y)
 # Generate all possibles patches, and predict the classifier on them
 print "predicting on the images"
 im1 = imread('../data/img1.jpg')[::-1].mean(axis=2)
-boxes1 = mem.cache(generate_bounding_boxes)(im1)
+positions1, boxes1 = mem.cache(generate_bounding_boxes)(im1, pix=4)
 
-labels1 = clf.predict(boxes1)
-image = show_positive_boxes(im1, labels1)
+labels1 = mem.cache(clf.predict)(boxes1)
+image1 = mem.cache(show_positive_boxes)(im1, labels1, positions1)
+
+
+im2 = imread('../data/img2.jpg')[::-1].mean(axis=2)
+positions2, boxes2 = mem.cache(generate_bounding_boxes)(im2, pix=4)
+
+labels2 = mem.cache(clf.predict)(boxes2)
+image2 = mem.cache(show_positive_boxes)(im2, labels2, positions2)
+
+
+im3 = imread('../data/img3.jpg')[::-1].mean(axis=2)
+positions3, boxes3 = mem.cache(generate_bounding_boxes)(im3, pix=4)
+
+labels3 = mem.cache(clf.predict)(boxes3)
+image3 = mem.cache(show_positive_boxes)(im3, labels3, positions3)
+

@@ -91,22 +91,24 @@ def generate_bounding_boxes(image, pix=4):
 
     returns
     -------
-        ndarray
+        (ndarray, ndarray)
     """
     w, h = image.shape
     boxes = []
-    for i in range((w - 24) / 4):
-        for j in range((h - 24) / 4):
+    positions = []
+    for i in range((w - 24) / pix):
+        for j in range((h - 24) / pix):
             boxes.append(image[i * pix:i * pix + 24, j * pix:j * pix + 24])
+            positions.append([i * pix, j * pix])
     boxes = np.array(boxes).T
     norm_boxes = normalise(boxes)
     reshaped_boxes = norm_boxes.reshape(
                         (norm_boxes.shape[0] * norm_boxes.shape[1],
                          norm_boxes.shape[2]))
-    return reshaped_boxes.T
+    return np.array(positions), reshaped_boxes.T
 
 
-def show_positive_boxes(image, labels):
+def show_positive_boxes(image, labels, positions):
     """
     Returns an image with the positive bounding boxes drawn
 
@@ -123,8 +125,8 @@ def show_positive_boxes(image, labels):
     image = image.copy()
     for i, label in enumerate(labels):
         if label:
-            x0 = 4 * i % 24
-            y0 = 4 * i - (i % (4 * 24)) % 24
+            x0 = positions[i, 0]
+            y0 = positions[i, 1]
             image[bresenham(x0, y0, x0 + 24, y0)] = 0
             image[bresenham(x0, y0, x0, y0 + 24)] = 0
             image[bresenham(x0 + 24, y0, x0 + 24, y0 + 24)] = 0
