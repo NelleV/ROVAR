@@ -1,6 +1,8 @@
 import numpy as np
 from scipy import io
 from matplotlib import pyplot as plt
+import random
+
 
 negsamples = '../data/negsamples.mat'
 possamples = '../data/possamples.mat'
@@ -58,7 +60,7 @@ def plot_gallery(images, title, h, w, n_row=3, n_col=4):
         plt.yticks(())
 
 
-def format_data():
+def format_data(shuffle=True):
     pos, neg = load_data()
 
     pos_norm = normalise(pos)
@@ -72,7 +74,10 @@ def format_data():
     y = np.concatenate((np.ones((svm_pos.shape[1])),
                         np.zeros((svm_neg.shape[1]))),
                     axis=1).T
-    return X, y
+    if shuffle:
+        idxs = np.arange(X.shape[0])
+        np.random.shuffle(idxs)
+    return X[idxs,:], y[idxs,:]
 
 
 def generate_bounding_boxes(image):
@@ -91,6 +96,12 @@ def generate_bounding_boxes(image):
                          norm_boxes.shape[2]))
     return reshaped_boxes.T
 
+
+def merge_bounding_boxes(image, boxes, labels):
+    """
+    Merges bounding boxes
+    """
+    print "" 
 
 if __name__ == "__main__":
     pos, neg = load_data()
