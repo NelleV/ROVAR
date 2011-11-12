@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 negsamples = '../data/negsamples.mat'
 possamples = '../data/possamples.mat'
 
+
 def load_data():
     """
     Loads sample data from two matlab files
@@ -55,6 +56,40 @@ def plot_gallery(images, title, h, w, n_row=3, n_col=4):
         plt.title(titles[i], size=12)
         plt.xticks(())
         plt.yticks(())
+
+
+def format_data():
+    pos, neg = load_data()
+
+    pos_norm = normalise(pos)
+    neg_norm = normalise(neg)
+
+    svm_pos = pos.reshape((pos.shape[0] * pos.shape[1], pos.shape[2]))
+    svm_neg = neg.reshape((neg.shape[0] * neg.shape[1], neg.shape[2]))
+
+    # Let's format the data in a nicer way
+    X = np.concatenate((svm_pos, svm_neg), axis=1).T
+    y = np.concatenate((np.ones((svm_pos.shape[1])),
+                        np.zeros((svm_neg.shape[1]))),
+                    axis=1).T
+    return X, y
+
+
+def generate_bounding_boxes(image):
+    """
+    Generates all bounding boxes from a given image
+    """
+    w, h = image.shape
+    boxes = []
+    for i in range(w - 24):
+        for j in range(h - 24):
+            boxes.append(image[i:i + 24, j:j + 24])
+    boxes = np.array(boxes).T
+    norm_boxes = normalise(boxes)
+    reshaped_boxes = norm_boxes.reshape(
+                        (norm_boxes.shape[0] * norm_boxes.shape[1],
+                         norm_boxes.shape[2]))
+    return reshaped_boxes.T
 
 
 if __name__ == "__main__":
