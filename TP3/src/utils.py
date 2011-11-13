@@ -175,7 +175,7 @@ def create_heat_map(image, scores, positions):
     return image
 
 
-def find_centroids(positions, scores, min_dist=25):
+def find_centroids(positions, scores, min_dist=25, direc=0):
     """
     Find centroids, and merge boxes
     """
