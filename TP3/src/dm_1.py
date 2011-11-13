@@ -1,10 +1,12 @@
 import numpy as np
 
+from matplotlib import pyplot
+
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
 from sklearn.svm import LinearSVC
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.externals.joblib import Memory
 
 from utils import format_data
@@ -22,34 +24,31 @@ X, y = format_data()
 ################################################################################
 # Split data into training set and testing set
 print "Splitting the data"
-test, train = iter(StratifiedKFold(y, k=15)).next()
-X_train, X_test = X[train], X[test]
-y_train, y_test = y[train], y[test]
+X_train, X_test = X[0:3000], X[3000:6000]
+y_train, y_test = y[0:3000], y[3000:6000]
 
 ################################################################################
 # Train the SVM classification model
 print "Training the classification model"
-param_grid = {
-  'C': [1, 5, 10, 50, 100, 500]
-  }
+cs = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 1]
+csx = range(len(cs))
+precisions = []
+recalls = []
+for c in cs:
+    print c
+    clf = LinearSVC(C=float(c))
+    clf = clf.fit(X_train, y_train)
 
-clf = GridSearchCV(LinearSVC(), param_grid,
-                   fit_params={'class_weight': 'auto'})
-clf = clf.fit(X_train, y_train)
-print "Best estimator found by grid search:"
-print clf.best_estimator
-clf = clf.best_estimator
-
-w =  clf.coef_[0]
-w = w.reshape((24, 24))
-
-################################################################################
-# Let's test the classifier
-print "Testing the classifier"
-y_pred = clf.predict(X_test)
-
-print classification_report(y_test, y_pred)
-print confusion_matrix(y_test, y_pred)
+    y_pred = clf.predict(X_test)
+    precisions.append(precision_score(y_test, y_pred))
+    recalls.append(recall_score(y_test, y_pred))
 
 
+    print classification_report(y_test, y_pred)
+
+fig = pyplot.figure()
+
+ax = fig.add_subplot(111)
+ax.plot(csx, precisions)
+ax.plot(csx, recalls)
 

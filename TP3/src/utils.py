@@ -3,6 +3,7 @@ from scipy import io
 from matplotlib import pyplot as plt
 import random
 
+from skimage.draw import bresenham
 
 negsamples = '../data/negsamples.mat'
 possamples = '../data/possamples.mat'
@@ -93,6 +94,7 @@ def generate_bounding_boxes(image, pix=4):
     -------
         (ndarray, ndarray)
     """
+
     w, h = image.shape
     boxes = []
     positions = []
@@ -100,7 +102,8 @@ def generate_bounding_boxes(image, pix=4):
         for j in range((h - 24) / pix):
             boxes.append(image[i * pix:i * pix + 24, j * pix:j * pix + 24])
             positions.append([i * pix, j * pix])
-    boxes = np.array(boxes).T
+    # FIXME boxes are not in the correct order
+    boxes = np.array(boxes).transpose((1, 2, 0))
     norm_boxes = normalise(boxes)
     reshaped_boxes = norm_boxes.reshape(
                         (norm_boxes.shape[0] * norm_boxes.shape[1],
@@ -121,7 +124,6 @@ def show_positive_boxes(image, labels, positions):
     -------
         image
     """
-    from skimage.draw import bresenham
     image = image.copy()
     for i, label in enumerate(labels):
         if label:
@@ -134,11 +136,72 @@ def show_positive_boxes(image, labels, positions):
     return image
 
 
-def merge_bounding_boxes(image, boxes, labels):
+def merge_bounding_boxes(image, scores, positions, threshold=0.5, dist=5):
     """
     Merges bounding boxes
     """
-    print "" 
+    image = image.copy()
+    num = 0
+    calc = scores > threshold
+    correct_positions = positions[calc]
+    correct_scores = scores[calc]
+    for position, score in zip(correct_positions, correct_scores):
+        num += 1
+        x0 = position[0]
+        y0 = position[1]
+        image[bresenham(x0, y0, x0 + 24, y0)] = 0
+        image[bresenham(x0, y0, x0, y0 + 24)] = 0
+        image[bresenham(x0 + 24, y0, x0 + 24, y0 + 24)] = 0
+        image[bresenham(x0, y0 + 24, x0 + 24, y0 + 24)] = 0
+    print "detected %d faces" % num
+    return image, correct_positions, correct_scores
+
+
+def create_heat_map(image, scores, positions):
+    """
+    Create a heatmap
+
+    params
+    -------
+        image
+        scores
+        positions
+    """
+    image = np.zeros(image.shape)
+    for position, score in zip(positions, scores):
+        x0 = position[0] + 12
+        y0 = position[1] + 12
+        image[x0, y0] = score
+    return image
+
+
+def find_centroids(positions, scores, min_dist=25):
+    """
+    Find centroids, and merge boxes
+    """
+    from sklearn.metrics.pairwise import euclidean_distances
+    centroids = []
+    positions += 12
+    centroid_scores = []
+    for position, score in zip(positions, scores):
+        if not centroids:
+            # initialise first centroid
+            centroids.append(position)
+            centroid_scores.append(score)
+        dist = euclidean_distances(position, np.array(centroids))
+        best_centroid = dist.argmin()
+        best_dist = dist.min()
+        if best_dist < min_dist:
+            if score > centroid_scores[best_centroid]:
+                centroid_scores[best_centroid] = score
+                centroids[best_centroid] = position
+        else:
+            # add a new centroid
+            centroids.append(position)
+            centroid_scores.append(score)
+    return np.array(centroids), np.array(centroid_scores)
+
+
 
 
 if __name__ == "__main__":
@@ -147,4 +210,7 @@ if __name__ == "__main__":
     neg = normalise(neg)
     pos_reshaped = pos.reshape((pos.shape[0] * pos.shape[1], pos.shape[2]))
     pos_reshaped = neg.reshape((neg.shape[0] * neg.shape[1], neg.shape[2]))
+    from matplotlib.pyplot import imread
+    image = imread('../data/img1.jpg')[::-1].mean(axis=2)
+    positions, boxes = generate_bounding_boxes(image)
 
