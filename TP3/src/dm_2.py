@@ -6,14 +6,14 @@ from matplotlib import cm
 
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
-from sklearn.svm import LinearSVC, SVR
+from sklearn.svm import LinearSVC, SVC
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.externals.joblib import Memory
 
 from utils import format_data, generate_bounding_boxes, normalise
 from utils import show_positive_boxes, create_heat_map, merge_bounding_boxes
-from utils import find_centroids
+from utils import find_centroids, make_new_bounding_boxes
 
 # Using joblib allows to cache some of the results, in order to gain time on
 # computation
@@ -30,6 +30,14 @@ def classifier():
     clf = mem.cache(clf.fit)(X, y)
     return clf
 
+def classifier_rbf():
+    X, y = format_data()
+
+    clf = SVC(C=10, gamma=0.002)
+    clf = mem.cache(clf.fit)(X, y)
+    return clf
+
+
 ################################################################################
 # Generate all possibles patches, and predict the classifier on them
 print "predicting on the images"
@@ -45,22 +53,26 @@ def predict_on_image(file_path, thres=0.5):
     scores1 = np.dot(boxes1, w) + b
     #image1 = show_positive_boxes(im1, labels1, positions1)
     hmap = create_heat_map(im1, scores1, positions1)
-   
 
     centroids, centroids_scores = find_centroids(positions1, scores1,
                                                  min_dist=35)
     sc = centroids_scores > thres
     im = show_positive_boxes(im1, sc, centroids - 12)
-    return hmap, im, centroids_scores
 
-hmap1, im1, scores1 = mem.cache(predict_on_image)('../data/img1.jpg',
+    clf = classifier_rbf()
+    boxes = make_new_bounding_boxes(im, centroids - 12)
+    A = clf.predict(boxes)
+    return hmap, im, centroids_scores, A, boxes
+
+
+hmap1, im1, scores1, A, boxes = mem.cache(predict_on_image)('../data/img1.jpg',
                                                   thres=0)
-hmap2, im2, scores2 = mem.cache(predict_on_image)('../data/img2.jpg',
-                                                  thres=0)
-hmap3, im3, scores3 = mem.cache(predict_on_image)('../data/img3.jpg',
-                                                  thres=0)
-hmap4, im4, scores4 = mem.cache(predict_on_image)('../data/img4.jpg',
-                                                  thres=0)
+#hmap2, im2, scores2 = mem.cache(predict_on_image)('../data/img2.jpg',
+#                                                  thres=0)
+#hmap3, im3, scores3 = mem.cache(predict_on_image)('../data/img3.jpg',
+#                                                  thres=0)
+#hmap4, im4, scores4 = mem.cache(predict_on_image)('../data/img4.jpg',
+#                                                  thres=0)
 
 fig = plt.figure()
 ax = fig.add_subplot(4, 2, 1)

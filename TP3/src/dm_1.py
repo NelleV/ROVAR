@@ -43,12 +43,21 @@ for c in cs:
     precisions.append(precision_score(y_test, y_pred))
     recalls.append(recall_score(y_test, y_pred))
 
-
-    print classification_report(y_test, y_pred)
+    # print classification_report(y_test, y_pred)
 
 fig = pyplot.figure()
-
 ax = fig.add_subplot(111)
+
 ax.plot(csx, precisions)
 ax.plot(csx, recalls)
+
+leg = ax.legend(('Precisions', 'Recalls'), shadow=True)
+
+for t in leg.get_texts():
+    t.set_fontsize('small')    # the legend text fontsize
+
+# matplotlib.lines.Line2D instances
+for l in leg.get_lines():
+    l.set_linewidth(1.5)  # the legend line width
+
 
