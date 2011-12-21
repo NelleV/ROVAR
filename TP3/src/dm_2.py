@@ -4,7 +4,6 @@ from matplotlib.pyplot import imread, matshow
 from matplotlib import pyplot as plt
 from matplotlib import cm
 
-from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
 from sklearn.svm import LinearSVC, SVC
 from sklearn.metrics import classification_report
@@ -59,20 +58,17 @@ def predict_on_image(file_path, thres=0.5):
     sc = centroids_scores > thres
     im = show_positive_boxes(im1, sc, centroids - 12)
 
-    clf = classifier_rbf()
-    boxes = make_new_bounding_boxes(im, centroids - 12)
-    A = clf.predict(boxes)
-    return hmap, im, centroids_scores, A, boxes
+    return hmap, im, centroids_scores
 
 
-hmap1, im1, scores1, A, boxes = mem.cache(predict_on_image)('../data/img1.jpg',
+hmap1, im1, scores1 = mem.cache(predict_on_image)('../data/img1.jpg',
                                                   thres=0)
-#hmap2, im2, scores2 = mem.cache(predict_on_image)('../data/img2.jpg',
-#                                                  thres=0)
-#hmap3, im3, scores3 = mem.cache(predict_on_image)('../data/img3.jpg',
-#                                                  thres=0)
-#hmap4, im4, scores4 = mem.cache(predict_on_image)('../data/img4.jpg',
-#                                                  thres=0)
+hmap2, im2, scores2 = mem.cache(predict_on_image)('../data/img2.jpg',
+                                                  thres=0)
+hmap3, im3, scores3 = mem.cache(predict_on_image)('../data/img3.jpg',
+                                                  thres=0)
+hmap4, im4, scores4 = mem.cache(predict_on_image)('../data/img4.jpg',
+                                                  thres=0)
 
 fig = plt.figure()
 ax = fig.add_subplot(4, 2, 1)

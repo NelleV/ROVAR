@@ -3,16 +3,14 @@
 #
 # http://www.janeriksolem.net/2009/01/harris-corner-detector-in-python.html
 
-from scipy import signal, stats, ndimage
-from scipy import *
-
-
 import numpy as np
+from scipy import stats, ndimage
 
 from matplotlib import pyplot
 
+
 def compute_harris_response(image, eps=1e-6):
-    """ compute the Harris corner detector response function 
+    """ compute the Harris corner detector response function
         for each pixel in the image"""
 
     # derivatives
@@ -25,7 +23,7 @@ def compute_harris_response(image, eps=1e-6):
     Wyy = ndimage.gaussian_filter(imy * imy, 1.5, mode='constant')
 
     # determinant and trace
-    Wdet = Wxx*Wyy - Wxy**2
+    Wdet = Wxx * Wyy - Wxy ** 2
     Wtr = Wxx + Wyy
     harris = Wdet / (Wtr + eps)
 
@@ -41,12 +39,12 @@ def compute_harris_response(image, eps=1e-6):
     return harris
 
 
-def get_harris_points(harrisim, min_distance=10, threshold=0.5):
+def get_harris_points(harrisim, min_distance=10, threshold=0.1):
     """ return corners from a Harris response image
         min_distance is the minimum nbr of pixels separating
         corners and image boundary"""
 
-    corner_threshold = stats.scoreatpercentile(harrisim.ravel(), threshold*100)
+    corner_threshold = np.max(harrisim.ravel()) * threshold
     # find top corner candidates above a threshold
     # corner_threshold = max(harrisim.ravel()) * threshold
     harrisim_t = (harrisim >= corner_threshold) * 1
@@ -59,10 +57,10 @@ def get_harris_points(harrisim, min_distance=10, threshold=0.5):
     candidate_values = [harrisim[c[0]][c[1]] for c in coords]
 
     # sort candidates
-    index = argsort(candidate_values)
+    index = np.argsort(candidate_values)
 
     # store allowed point locations in array
-    allowed_locations = zeros(harrisim.shape)
+    allowed_locations = np.zeros(harrisim.shape)
     allowed_locations[min_distance:-min_distance,
                       min_distance:-min_distance] = 1
 
@@ -81,8 +79,18 @@ def get_harris_points(harrisim, min_distance=10, threshold=0.5):
 def plot_harris_points(image, filtered_coords):
     """ plots corners found in image"""
 
-    pyplot.subplot(151)
+    pyplot.subplot(111)
     pyplot.imshow(image)
-    pyplot.plot([p[1] for p in filtered_coords],[p[0] for p in filtered_coords],'*')
+    pyplot.plot([p[1] for p in filtered_coords],
+                [p[0] for p in filtered_coords],
+                '*')
     pyplot.axis('off')
     pyplot.show()
+
+
+if __name__ == '__main__':
+    import scipy as sp
+    im = sp.lena().astype(float)
+    harrisim = compute_harris_response(im)
+    filtered_coords = get_harris_points(harrisim, 6)
+    plot_harris_points(im, filtered_coords)
